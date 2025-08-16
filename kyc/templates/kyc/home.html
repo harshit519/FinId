@@ -1,0 +1,151 @@
+{% extends 'kyc/base.html' %}
+{% block title %}Home - FinId{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <!-- Hero Section -->
+        <div class="hero text-center mb-5">
+            <div class="mb-4">
+                <div class="mb-4">
+                    <img src="/media/kyc/3/LogoSample_ByTailorBrands (1).jpg" alt="FinId Logo" class="img-fluid shadow-lg" style="width:200px;height:auto;max-height:120px;object-fit:contain;">
+                </div>
+                <h1 class="display-5 fw-bold text-primary mb-3">Welcome to FinId</h1>
+                <p class="lead text-muted">Your secure platform for identity verification and KYC management</p>
+            </div>
+            
+            {% if user.is_authenticated %}
+                <div class="alert alert-success" role="alert">
+                    <i class="fa-solid fa-check-circle me-2"></i>
+                    Welcome back, <strong>{{ user.get_full_name|default:user.username }}</strong>!
+                </div>
+            {% else %}
+                <div class="d-flex gap-3 justify-content-center">
+                    <a href="{% url 'login' %}" class="btn btn-primary btn-lg">
+                        <i class="fa-solid fa-sign-in-alt me-2"></i>Login
+                    </a>
+                    <a href="{% url 'signup' %}" class="btn btn-outline-primary btn-lg">
+                        <i class="fa-solid fa-user-plus me-2"></i>Sign Up
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Navigation Cards -->
+        {% if user.is_authenticated %}
+        <div class="row g-4">
+            <!-- Profile Card -->
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm hover-lift">
+                    <div class="card-body text-center p-4">
+                        <div class="mb-3">
+                            <img src="/media/kyc/3/11539820.png" alt="Profile Icon" style="width:64px;height:64px;object-fit:contain;">
+                        </div>
+                        <h5 class="card-title">View Profile</h5>
+                        <p class="card-text text-muted">View your personal information, contact details, and social profiles</p>
+                        <a href="{% url 'kyc:view-profile-page' %}" class="btn btn-primary">
+                            <i class="fa-solid fa-eye me-2"></i>View Profile
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KYC Card -->
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm hover-lift">
+                    <div class="card-body text-center p-4">
+                        <div class="mb-3">
+                            <img src="/media/kyc/3/badge-design-with-kyc-know-your-customer-checkmark-symbolizing-verified-and-secure-customer-identification-processes-vector.jpg" alt="KYC Badge" style="width:64px;height:64px;object-fit:contain;">
+                        </div>
+                        <h5 class="card-title">Upload Documents</h5>
+                        <p class="card-text text-muted">Upload and manage your identity verification documents</p>
+                        <a href="{% url 'kyc:kyc-page' %}" class="btn btn-primary">
+                            <i class="fa-solid fa-upload me-2"></i>Upload KYC
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Documents Card -->
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm hover-lift">
+                    <div class="card-body text-center p-4">
+                        <div class="mb-3">
+                            <img src="/media/kyc/3/my documents folder.png" alt="Documents Folder" style="width:64px;height:64px;object-fit:contain;">
+                        </div>
+                        <h5 class="card-title">My Documents</h5>
+                        <p class="card-text text-muted">View and manage all your uploaded documents</p>
+                        <a href="{% url 'kyc:documents-page' %}" class="btn btn-primary">
+                            <i class="fa-solid fa-folder-open me-2"></i>View Documents
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-transparent">
+                        <h6 class="mb-0"><i class="fa-solid fa-chart-bar me-2"></i>Quick Overview</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-md-4">
+                                <div class="p-3">
+                                    <div class="h4 text-primary mb-1">{{ profile.phone_number|yesno:"✓,✗" }}</div>
+                                    <small class="text-muted">Phone Number</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="p-3">
+                                    <div class="h4 text-primary mb-1">{{ profile.address|yesno:"✓,✗" }}</div>
+                                    <small class="text-muted">Address</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="p-3">
+                                    <div class="h4 text-primary mb-1">{{ documents.count|default:0 }}</div>
+                                    <small class="text-muted">KYC Documents</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <!-- Features for non-authenticated users -->
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body text-center p-4">
+                        <i class="fa-solid fa-shield-alt fa-2x text-primary mb-3"></i>
+                        <h5>Secure</h5>
+                        <p class="text-muted">Bank-level security for your personal information</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body text-center p-4">
+                        <i class="fa-solid fa-bolt fa-2x text-primary mb-3"></i>
+                        <h5>Fast</h5>
+                        <p class="text-muted">Quick verification and document processing</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body text-center p-4">
+                        <i class="fa-solid fa-mobile-alt fa-2x text-primary mb-3"></i>
+                        <h5>Mobile</h5>
+                        <p class="text-muted">Access from anywhere, anytime</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
