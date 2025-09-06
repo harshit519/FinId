@@ -1,0 +1,202 @@
+{% extends 'kyc/base.html' %}
+{% block title %}My Documents - FinId{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="fa-solid fa-folder-open me-2"></i>My Documents</span>
+                <a href="{% url 'kyc:kyc-page' %}" class="btn btn-sm btn-primary">
+                    <i class="fa-solid fa-plus me-1"></i>Upload New Document
+                </a>
+            </div>
+            <div class="card-body">
+                {% if documents %}
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th><i class="fa-solid fa-calendar me-1"></i>Uploaded At</th>
+                                    <th><i class="fa-solid fa-file me-1"></i>Document</th>
+                                    <th><i class="fa-solid fa-tag me-1"></i>Document Type</th>
+                                    <th><i class="fa-solid fa-id-card me-1"></i>Document ID</th>
+                                    <th><i class="fa-solid fa-registered me-1"></i>Registration Number</th>
+                                    <th><i class="fa-solid fa-cogs me-1"></i>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for document in documents %}
+                                <tr>
+                                    <td>{{ document.uploaded_at|date:"M d, Y H:i" }}</td>
+                                    <td>
+                                        <span class="badge bg-primary">
+                                            <i class="fa-solid fa-file-pdf me-1"></i>
+                                            {{ document.document_file.name|slice:"-4:"|upper }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">{{ document.get_document_type_display }}</span>
+                                    </td>
+                                    <td>{{ document.document_id|default:"-" }}</td>
+                                    <td>{{ document.registration_number|default:"-" }}</td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-sm btn-outline-primary" 
+                                                    onclick="viewDocument('{{ document.document_file.url }}', '{{ document.get_document_type_display }}')"
+                                                    title="Open Document">
+                                                <i class="fa-solid fa-eye"></i> Open
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" 
+                                                    onclick="confirmDelete({{ document.id }}, '{{ document.get_document_type_display }}')"
+                                                    title="Delete Document">
+                                                <i class="fa-solid fa-trash"></i> Delete
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Summary Stats -->
+                    <div class="row mt-4">
+                        <div class="col-md-3">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body text-center">
+                                    <h4>{{ documents.count }}</h4>
+                                    <small>Total Documents</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-success text-white">
+                                <div class="card-body text-center">
+                                    <h4>{{ documents.count }}</h4>
+                                    <small>Verified</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-info text-white">
+                                <div class="card-body text-center">
+                                    <h4>{{ documents.count }}</h4>
+                                    <small>Active</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-warning text-white">
+                                <div class="card-body text-center">
+                                    <h4>0</h4>
+                                    <small>Pending</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fa-solid fa-folder-open fa-3x text-muted mb-3"></i>
+                        <h4 class="text-muted">No Documents Found</h4>
+                        <p class="text-muted">You haven't uploaded any documents yet.</p>
+                        <a href="{% url 'kyc:kyc-page' %}" class="btn btn-primary">
+                            <i class="fa-solid fa-upload me-2"></i>Upload Your First Document
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Document Viewer Modal -->
+<div class="modal fade" id="documentModal" tabindex="-1" aria-labelledby="documentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="documentModalLabel">Document Viewer</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div id="documentContent">
+                    <!-- Document content will be loaded here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="#" id="downloadLink" class="btn btn-primary" target="_blank">
+                    <i class="fa-solid fa-download me-1"></i>Download
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this document?</p>
+                <p class="text-muted" id="deleteDocumentInfo"></p>
+                <p class="text-danger"><strong>This action cannot be undone.</strong></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <input type="hidden" id="deleteDocumentId" name="document_id" value="">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fa-solid fa-trash me-1"></i>Delete Document
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function viewDocument(documentUrl, documentType) {
+    const modal = new bootstrap.Modal(document.getElementById('documentModal'));
+    const modalTitle = document.getElementById('documentModalLabel');
+    const documentContent = document.getElementById('documentContent');
+    const downloadLink = document.getElementById('downloadLink');
+    
+    modalTitle.textContent = documentType + ' Document';
+    downloadLink.href = documentUrl;
+    
+    // Check if it's an image file
+    const fileExtension = documentUrl.split('.').pop().toLowerCase();
+    const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
+    
+    if (imageExtensions.includes(fileExtension)) {
+        // Display image
+        documentContent.innerHTML = `
+            <img src="${documentUrl}" class="img-fluid" alt="${documentType}" style="max-height: 70vh;">
+        `;
+    } else {
+        // Display PDF or other files in an iframe
+        documentContent.innerHTML = `
+            <iframe src="${documentUrl}" width="100%" height="500px" frameborder="0"></iframe>
+        `;
+    }
+    
+    modal.show();
+}
+
+function confirmDelete(documentId, documentType) {
+    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    const deleteDocumentId = document.getElementById('deleteDocumentId');
+    const deleteDocumentInfo = document.getElementById('deleteDocumentInfo');
+    
+    deleteDocumentId.value = documentId;
+    deleteDocumentInfo.textContent = `Document Type: ${documentType}`;
+    
+    modal.show();
+}
+</script>
+{% endblock %}
